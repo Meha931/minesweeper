@@ -5,14 +5,14 @@
     <title>Mines</title>
 </head>
 <body style="margin: 0px;">
-    <canvas id="canvas" width=200 height=200></canvas>
+    <canvas id="canvas" width=0 height=0></canvas>
     <fieldset>
         <legend>Parameters</legend>
         <p>Swap buttons: <input id="swap" type="checkbox"></p>
-        <p>Width: <input id="width" type="number"></p>
-        <p>Height: <input id="height" type="number"></p>
-        <p>Mines: <input id="mines" type="number"></p>
-        <button onclick="generate();">Generate</button><!-- heckin buttons -->
+        <p>Width: <input id="width" type="number" value=10></p>
+        <p>Height: <input id="height" type="number" value=10></p>
+        <p>Mines: <input id="mines" type="number" value=15></p>
+        <button onclick="generate();">Start</button><!-- heckin buttons -->
     </fieldset>
     <script>
         let canvas=document.getElementById("canvas");
