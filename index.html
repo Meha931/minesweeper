@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Mines</title>
+</head>
+<body style="margin: 0px;">
+    <canvas id="canvas" width=200 height=200></canvas>
+    <fieldset>
+        <legend>Parameters</legend>
+        <p>Swap buttons: <input id="swap" type="checkbox"></p>
+        <p>Width: <input id="width" type="number"></p>
+        <p>Height: <input id="height" type="number"></p>
+        <p>Mines: <input id="mines" type="number"></p>
+        <button onclick="generate();">Generate</button><!-- heckin buttons -->
+    </fieldset>
+    <script>
+        let canvas=document.getElementById("canvas");
+        let ctx=canvas.getContext("2d");
+    </script>
+    <script src="minesweeper.js"></script>
+    <script>
+        function getInput(id) {
+            return document.getElementById(id).value;
+        }
+        let inputs={
+            width: 0,
+            height: 0,
+            mines: 0,
+            size: 20
+        };
+        let gameStatus=true;
+        let hasWon=false;
+        function generate() {
+            inputs.width=+getInput("width");
+            inputs.height=+getInput("height");
+            inputs.mines=+getInput("mines");
+            canvas.width=inputs.width*inputs.size;
+            canvas.height=inputs.height*inputs.size;
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+            Mines.genField(inputs.width,inputs.height,inputs.mines);
+            Mines.render(inputs.size);
+            gameStatus=true;
+            hasWon=false;
+        }
+        function trivialChecks() {
+            if (gameStatus && !hasWon && Mines.checkWin()) {
+                hasWon=true;
+                alert("You won!");
+            }
+            if (gameStatus) Mines.render(inputs.size);
+            else Mines.render(inputs.size,true);
+        }
+        function clickSender(button,e) {
+            //console.log("The button was: "+button);
+            button=(document.getElementById("swap").checked)?(!button):(!!button); //swaps the buttons: 0/false is left, 1/true is right. could've also put that right into the 'if'
+            //console.log("Now the button is: "+button);
+            if (button) { //if it is right, call the right mouse button method
+                if (gameStatus) Mines.rightClick(Math.floor(e.clientX/inputs.size),Math.floor(e.clientY/inputs.size));
+            } else { //otherwise, call the left button method
+                if (gameStatus && !hasWon) {
+                    gameStatus=(Mines.leftClick(Math.floor(e.clientX/inputs.size),Math.floor(e.clientY/inputs.size))===0)?false:true; //yup that's a bootleg
+                    //console.log("Successully clicked a cell");
+                }
+            }
+        }
+        canvas.onclick=function (e) {
+            //console.log(e);
+            clickSender(0,e);
+            //console.log("Now the game status is: "+gameStatus);
+            trivialChecks();
+        };
+        canvas.onauxclick=function (e) { //i suppose, if it isn't the primary button, it should be secondary..?
+            //console.log(e);
+            e.preventDefault();
+            clickSender(1,e);
+            trivialChecks();
+        };
+        canvas.oncontextmenu=function (e) { //i guess this could've been used as right mouse button handler too... but nah.
+            e.preventDefault();             //or maybe i should reassign it... maybe mobile browsers *do* try to open the context menu on long tap
+        };                                  //"felt lazy. might reassign later."
+    </script>
+</body>
+</html>
