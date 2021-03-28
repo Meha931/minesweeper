@@ -51,29 +51,29 @@
             if (gameStatus) Mines.render(inputs.size);
             else Mines.render(inputs.size,true);
         }
-        function clickSender(button,e) {
+        function clickSender(button,x,y) {
             //console.log("The button was: "+button);
             button=(document.getElementById("swap").checked)?(!button):(!!button); //swaps the buttons: 0/false is left, 1/true is right. could've also put that right into the 'if'
             //console.log("Now the button is: "+button);
             if (button) { //if it is right, call the right mouse button method
-                if (gameStatus) Mines.rightClick(Math.floor(e.clientX/inputs.size),Math.floor(e.clientY/inputs.size));
+                if (gameStatus) Mines.rightClick(x,y);
             } else { //otherwise, call the left button method
                 if (gameStatus && !hasWon) {
-                    gameStatus=(Mines.leftClick(Math.floor(e.clientX/inputs.size),Math.floor(e.clientY/inputs.size))===0)?false:true; //yup that's a bootleg
+                    gameStatus=(Mines.leftClick(x,y)===9)?false:true; //yup that's a bootleg
                     //console.log("Successully clicked a cell");
                 }
             }
         }
         canvas.onclick=function (e) {
             //console.log(e);
-            clickSender(0,e);
+            clickSender(0,Math.floor(e.clientX/inputs.size),Math.floor(e.clientY/inputs.size));
             //console.log("Now the game status is: "+gameStatus);
             trivialChecks();
         };
         canvas.onauxclick=function (e) { //i suppose, if it isn't the primary button, it should be secondary..?
             //console.log(e);
             e.preventDefault();
-            clickSender(1,e);
+            clickSender(1,Math.floor(e.clientX/inputs.size),Math.floor(e.clientY/inputs.size));
             trivialChecks();
         };
         canvas.oncontextmenu=function (e) { //i guess this could've been used as right mouse button handler too... but nah.

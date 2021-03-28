@@ -4,6 +4,12 @@ let Mines={
         playerMarks: [],
         numbers: []
     },
+    amounts: {
+        fieldSize: [0,0],
+        mines: 0,
+        opened: 0,
+        flags: 0
+    },
     countMines: function (x, y) { //Count the number of adjacent mines
         let sum=0;
         if (x>0) {
@@ -42,6 +48,8 @@ let Mines={
             }
             this.fields.mines.push(column);
         }
+        this.amounts.mines=mines;
+        this.amounts.fieldSize=[width,height];
         //playerMarks
         //this.fields.playerMarks=(new Array(width)).fill((new Array(height)).fill(0));
         this.fields.playerMarks=[];
@@ -52,6 +60,7 @@ let Mines={
             }
             this.fields.playerMarks.push(column);
         }
+        this.amounts.flags=0;
         //numbers
         this.fields.numbers=[];
         for (let x=0;x<width;x++) {
@@ -60,9 +69,11 @@ let Mines={
                 this.fields.numbers[x][y]=this.countMines(x,y);
             }
         }
+        this.amounts.opened=0;
     },
     draw: {
         number: function (x,y,n,size=20) {
+            if (n===0) return;
             ctx.textAlign="center";
             ctx.textBaseline="middle";
             ctx.font="bold "+size*0.8+"px sans-serif";
@@ -114,15 +125,11 @@ let Mines={
         remember to add canvas resizer
         */
         
-        let fieldSize=[
-            this.fields.mines.length,
-            (this.fields.mines[0])?(this.fields.mines[0].length):0
-        ];
         //clear
-        ctx.clearRect(0,0,fieldSize[0]*size,fieldSize[1]*size);
+        ctx.clearRect(0,0,this.amounts.fieldSize[0]*size,this.amounts.fieldSize[1]*size);
         //background
         ctx.fillStyle="#DDDDDD";
-        ctx.fillRect(0,0,fieldSize[0]*size,fieldSize[1]*size);
+        ctx.fillRect(0,0,this.amounts.fieldSize[0]*size,this.amounts.fieldSize[1]*size);
         //cells
         for (let x=0;x<this.fields.mines.length;x++) {
             for (let y=0;y<this.fields.mines[0].length;y++) { //would've added the same check, but nah, the loop wouldn't run in this case anyways
@@ -150,39 +157,55 @@ let Mines={
             }
         }
         ctx.strokeStyle="#404040";
-        ctx.lineWidth=0.1*size;
-        for (let x=1;x<fieldSize[0];x++) {
+        ctx.lineWidth=0.05*size;
+        for (let x=1;x<this.amounts.fieldSize[0];x++) {
             ctx.beginPath();
             ctx.moveTo(x*size,0);
-            ctx.lineTo(x*size,fieldSize[1]*size);
+            ctx.lineTo(x*size,this.amounts.fieldSize[1]*size);
             ctx.stroke();
         }
-        for (let y=1;y<fieldSize[1];y++) {
+        for (let y=1;y<this.amounts.fieldSize[1];y++) {
             ctx.beginPath();
             ctx.moveTo(0,y*size);
-            ctx.lineTo(fieldSize[0]*size,y*size);
+            ctx.lineTo(this.amounts.fieldSize[0]*size,y*size);
             ctx.stroke();
         }
         ctx.strokeStyle="black";
         ctx.lineWidth=0.1*size;
-        ctx.strokeRect(0,0,fieldSize[0]*size,fieldSize[1]*size);
+        ctx.strokeRect(0,0,this.amounts.fieldSize[0]*size,this.amounts.fieldSize[1]*size);
     },
     checkWin: function () {
-        for (column of Mines.fields.playerMarks) {
-            if (column.includes(0)) return false;
-        }
-        return true;
+        //for (column of Mines.fields.playerMarks) {
+        //    if (column.includes(0)) return false;
+        //}
+        //return true;
+        if (this.amounts.fieldSize[0]*this.amounts.fieldSize[1]-this.amounts.opened<=this.amounts.mines) return true;
+        else return false; //yes i know i could've used it not
     },
     rightClick: function (x,y) {
-        if      (this.fields.playerMarks[x][y]===0) this.fields.playerMarks[x][y]=2;
-        else if (this.fields.playerMarks[x][y]===2) this.fields.playerMarks[x][y]=0;
+        if      (this.fields.playerMarks[x][y]===0) {this.fields.playerMarks[x][y]=2;this.amounts.flags++}
+        else if (this.fields.playerMarks[x][y]===2) {this.fields.playerMarks[x][y]=0;this.amounts.flags--}
     },
     leftClick: function (x,y) { //the *engine* of the game
+        if (x<0) x=0;
+        else if (x>this.amounts.fieldSize[0]-1) x=this.amounts.fieldSize[0]-1;
+        if (y<0) y=0;
+        else if (y>this.amounts.fieldSize[1]-1) y=this.amounts.fieldSize[1]-1;
+
         if (this.fields.playerMarks[x][y]===0) {
-            if (this.fields.mines[x][y]) return 0;
+            if (this.fields.mines[x][y]) return 9;
             else {
                 this.fields.playerMarks[x][y]=1;
-                return 1;
+                this.amounts.opened++;
+                let out=this.fields.numbers[x][y];
+                if (out===0) { //ho boy
+                    for (let ox=-1;ox<=1;ox++) { //i promise this isn't a loopback
+                        for (let oy=-1;oy<=1;oy++) {
+                            this.leftClick(x+ox,y+oy); //hopefully there won't be any mines around 'zeroes'...
+                        }
+                    }
+                }
+                return out;
             }
         }
     },
